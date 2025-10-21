@@ -1,0 +1,56 @@
+Миграции на рабочем компе:
+
+migrate create -ext sql -dir /c/KKO11/Golang/Gavrilin/Delayed_Notifier/db/dumps -seq tables
+
+migrate -path /c/KKO11/Golang/Gavrilin/Delayed_Notifier/db/dumps -database "postgres://localhost:5440/delayed_notifier?sslmode=disable&user=vladimir&password=password" up
+
+migrate -path /c/KKO11/Golang/Gavrilin/Delayed_Notifier/db/dumps -database "postgres://localhost:5440/delayed_notifier?sslmode=disable&user=vladimir&password=password" down
+_________Проверка таблиц в контйнере vpostgres____________________
+docker exec -it vpostgres psql -U vladimir -l
+
+docker exec -it vpostgres psql -U vladimir -d delayed_notifier -c "\dt"
+
+docker exec -it vpostgres psql -U vladimir -d delayed_notifier \
+	-c "SELECT * FROM notifications LIMIT 10"
+
+
+__________________ЗАПУСК в ДОКЕРЕ___________
+docker run -d --name vpostgres -p 5440:5432 -e POSTGRES_USER=vladimir -e POSTGRES_PASSWORD="password" -e POSTGRES_DB="delayed_notifier" postgres:latest
+
+docker run -d --name redis-go -p 6379:6379 redis
+
+docker run -d --name rabbitmq -p 5672:5672 -p 15672:15672 -e RABBITMQ_DEFAULT_USER=user -e RABBITMQ_DEFAULT_PASS=password rabbitmq:management
+_____________________________________________________________
+
+
+
+Миграции на домашнем Маке
+
+migrate create -ext sql -dir /Users/mac/Dev/WBTech/Delayed_Notifier/db/dumps -seq tables
+
+migrate -path /Users/mac/Dev/WBTech/Delayed_Notifier/db/dumps -database "postgres://localhost:5440/delayed_notifier?sslmode=disable&user=postgres&password=password" up
+
+migrate -path /Users/mac/Dev/WBTech/Delayed_Notifier/db/dumps -database "postgres://localhost:5440/delayed_notifier?sslmode=disable&user=postgres&password=password" down
+
+_______________________________________________________________
+Миграции на домашнем Маке:
+ ***РАБОЧИЙ ВАРИК с УЧЕТОМ ошибок переменной окружения  (PGLOCALEDIR=/Library/PostgreSQL/17/share/locale)***
+
+ env -u PGLOCALEDIR migrate -database "postgres://localhost:5440/delayed_notifier?sslmode=disable&user=vladimir&password=password" -path /Users/mac/Dev/WBTech/Delayed_Notifier/db/dumps up
+
+ env -u PGLOCALEDIR migrate -database "postgres://localhost:5440/delayed_notifier?sslmode=disable&user=vladimir&password=password" -path /Users/mac/Dev/WBTech/Delayed_Notifier/db/dumps down
+_______________________________________________________________
+*********KAFKA**********
+
+cd /Users/mac/dev/sdk/kafka_2.13-4.0.0/
+KAFKA_CLUSTER_ID="$(bin/kafka-storage.sh random-uuid)"
+bin/kafka-storage.sh format --standalone -t $KAFKA_CLUSTER_ID -c config/server.properties
+bin/kafka-server-start.sh config/server.properties
+
+_______________________________________________________________
+
+
+
+migrate -path /Users/mac/Dev/WBTech/cloud_market/db/dumps -database "postgres://postgres:password@localhost:7701/cloud_market?sslmode=disable" up
+
+PGLOCALEDIR="" migrate -database "postgres://localhost:7701/cloud_market?sslmode=disable&user=postgres&password=password" -path ./migrations up
