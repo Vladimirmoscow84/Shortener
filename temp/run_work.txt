@@ -2,10 +2,13 @@
 _________Проверка таблиц в контйнере vpostgres____________________
 docker exec -it vpostgres psql -U vladimir -l
 
-docker exec -it vpostgres psql -U vladimir -d delayed_notifier -c "\dt"
+docker exec -it vpostgres psql -U vladimir -d shortener -c "\dt"
 
-docker exec -it vpostgres psql -U vladimir -d delayed_notifier \
-	-c "SELECT * FROM notifications LIMIT 10"
+docker exec -it vpostgres psql -U vladimir -d shortener \
+	-c "SELECT * FROM short_urls LIMIT 10"
+
+docker exec -it vpostgres psql -U vladimir -d shortener \
+	-c "SELECT * FROM clicks LIMIT 10"
 
 
 __________________ЗАПУСК в ДОКЕРЕ___________

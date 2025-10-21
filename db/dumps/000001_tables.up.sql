@@ -1,6 +1,6 @@
 BEGIN;
 
-CREATE TABLE IF NOT EXISTS short_url(
+CREATE TABLE IF NOT EXISTS short_urls(
     id SERIAL KEY PRIMARY KEY,
     original_code TEXT NOT NULL,
     short_code VARCHAR(16) NOT NULL,
