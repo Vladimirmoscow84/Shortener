@@ -1,13 +1,13 @@
 BEGIN;
 
 CREATE TABLE IF NOT EXISTS short_urls(
-    id SERIAL KEY PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     original_code TEXT NOT NULL,
     short_code VARCHAR(16) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE IF NOT EXISTS clics(
+CREATE TABLE IF NOT EXISTS clicks(
     id SERIAL PRIMARY KEY,
     short_url_id INTEGER NOT NULL REFERENCES short_urls(id) ON DELETE CASCADE,
     user_agent TEXT,

@@ -21,11 +21,11 @@ _____________________________________________________________
 
 Миграции на домашнем Маке
 
-migrate create -ext sql -dir /Users/mac/Dev/WBTech/shortener/db/dumps -seq tables
+migrate create -ext sql -dir /Users/mac/Dev/WBTech/shortener/db/dumps -seq tables~
 
-migrate -path /Users/mac/Dev/WBTech/shortener/db/dumps -database "postgres://localhost:5440/shortener?sslmode=disable&user=postgres&password=password" up
+migrate -path /Users/mac/Dev/WBTech/shortener/db/dumps -database "postgres://localhost:5440/shortener?sslmode=disable&user=vladimir&password=password" up
 
-migrate -path /Users/mac/Dev/WBTech/shortener/db/dumps -database "postgres://localhost:5440/shortener?sslmode=disable&user=postgres&password=password" down
+migrate -path /Users/mac/Dev/WBTech/shortener/db/dumps -database "postgres://localhost:5440/shortener?sslmode=disable&user=vladimir&password=password" down
 
 _______________________________________________________________
 Миграции на домашнем Маке:
