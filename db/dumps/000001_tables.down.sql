@@ -1,0 +1,6 @@
+BEGIN;
+
+DROP TABLE IF EXISTS clicks;
+DROP TABLE IF EXISTS short_urls;
+
+COMMIT;
