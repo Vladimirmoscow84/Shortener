@@ -10,6 +10,7 @@ require (
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
+	github.com/jmoiron/sqlx v1.4.0
 	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
