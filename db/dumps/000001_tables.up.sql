@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS clicks(
     id SERIAL PRIMARY KEY,
     short_url_id INTEGER NOT NULL REFERENCES short_urls(id) ON DELETE CASCADE,
     user_agent TEXT,
-    temestamp TIMESTAMP NOT NULL DEFAULT NOW()
+    timestamp TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX idx_short_urls_short_code ON short_urls(short_code);
