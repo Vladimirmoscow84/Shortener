@@ -1,30 +1,31 @@
 package storage
 
 import (
+	"errors"
 	"log"
 
-	"github.com/Vladimirmoscow84/Shortener.git/internal/storage/cache"
-	"github.com/jmoiron/sqlx"
+	"github.com/Vladimirmoscow84/Shortener.git/internal/storage/postgres"
 	"github.com/wb-go/wbf/redis"
 )
 
 // Storage - структура для работы с БД и кэш
 type Storage struct {
-	DB    *sqlx.DB     //поле postgres
-	Cache *cache.Cache //поле redis
+	*postgres.Postgres
+	*redis.Client
 }
 
 // New - конструктор для создания экземпляра Storage
-func New(databaseUri, rdAddr string) (*Storage, error) {
-	db, err := sqlx.Connect("pgx", databaseUri)
-	if err != nil {
-		log.Fatalf("[storage] error connection to DB: %v", err)
+func New(pg *postgres.Postgres, rd *redis.Client) (*Storage, error) {
+	if pg == nil {
+		log.Println("[storage] postgres client is nil ")
+		return nil, errors.New("[storage] postgres client is nill")
 	}
-	rd := redis.New(rdAddr, "", 0)
+	if rd == nil {
+		log.Println("[storage] redis client is nil ")
+		return nil, errors.New("[storage] redis client is nill")
+	}
 	return &Storage{
-		DB:    db,
-		Cache: cache.NewCache(rd),
+		Postgres: pg,
+		Client:   rd,
 	}, nil
 }
-
-// написать отдельный пакет postgres с методами,как и для кэш

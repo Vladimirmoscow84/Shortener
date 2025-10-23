@@ -1,4 +1,4 @@
-package utils
+package service
 
 import (
 	"crypto/rand"
@@ -23,3 +23,7 @@ func GenerateCode(length int) string {
 	}
 	return string(result)
 }
+
+
+//
+func()
