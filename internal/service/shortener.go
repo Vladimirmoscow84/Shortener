@@ -68,3 +68,60 @@ func (s *ServiceURL) CreateShortURL(ctx context.Context, longURL string) (*model
 	log.Printf("[service] created short URL %s: %s", longURL, shortCode)
 	return short, nil
 }
+
+// ReturnOriginalURLByShort возвращает оригинальную ссылку по короткой
+func (s *ServiceURL) ReturnOriginalURLByShort(ctx context.Context, shortCode, userAgent string) (string, error) {
+
+	var short *model.ShortURL
+
+	longUrl, err := s.cache.Get(ctx, shortCode)
+	if err == nil && longUrl != "" {
+		log.Printf("[service] availible in cache %s", shortCode)
+	} else {
+		log.Println("[service] failed to get short URL by cache")
+		log.Println("[service] traying to get short URL from DB")
+
+		short, err := s.storage.GetShortURL(ctx, shortCode)
+		if err != nil {
+			log.Println("[service] failed to get short URL by DB")
+			return "", fmt.Errorf("[service] failed to get short URL by DB %w", err)
+		}
+		if short == nil {
+			return "", fmt.Errorf("[service] short URL not found %s", shortCode)
+		}
+		longUrl = short.OriginalCode
+
+		err = s.cache.Set(ctx, shortCode, longUrl)
+		if err != nil {
+			log.Printf("[service] failed to cache short code %s: %v", shortCode, err)
+
+		}
+	}
+
+	click := &model.Click{
+		ShortURLID: 0,
+		UserAgent:  userAgent,
+		Timestamp:  time.Now(),
+	}
+
+	if short != nil {
+		click.ShortURLID = short.ID
+	} else {
+		dbShort, err := s.storage.GetShortURL(ctx, shortCode)
+		if err != nil {
+			log.Printf("[service] failed to get short url ID for click log: %v", err)
+		} else if dbShort != nil {
+			click.ShortURLID = dbShort.ID
+		}
+	}
+	if click.ShortURLID != 0 {
+		if err := s.storage.SaveClick(ctx, click); err != nil {
+			log.Printf("[service] failed to log click for %s: %v", shortCode, err)
+		}
+	} else {
+		log.Printf("[service] click not saved — no ShortURLID for %s", shortCode)
+	}
+
+	return longUrl, nil
+
+}
