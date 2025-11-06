@@ -4,7 +4,7 @@ go 1.25.0
 
 require (
 	github.com/gin-gonic/gin v1.9.1
-	github.com/wb-go/wbf v0.0.7
+	github.com/wb-go/wbf v0.0.8
 )
 
 require (

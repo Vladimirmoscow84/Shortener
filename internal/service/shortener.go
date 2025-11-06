@@ -15,7 +15,7 @@ import (
 const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
 // lengthShortCode - длина короткой ссылки
-const lengthSortCode = 8
+const lengthShortCode = 8
 
 // GenerateCode генерирует случайный код
 func GenerateCode(length int) string {
@@ -44,7 +44,7 @@ func (s *ServiceURL) CreateShortURL(ctx context.Context, longURL string) (*model
 		}
 		return short, nil
 	}
-	shortCode := GenerateCode(lengthSortCode)
+	shortCode := GenerateCode(lengthShortCode)
 	short := &model.ShortURL{
 		OriginalCode: longURL,
 		ShortCode:    shortCode,
@@ -108,22 +108,20 @@ func (s *ServiceURL) ReturnOriginalURLByShort(ctx context.Context, shortCode, us
 		click.ShortURLID = short.ID
 	} else {
 		dbShort, err := s.storage.GetShortURL(ctx, shortCode)
-		if err != nil {
-			log.Printf("[service] failed to get short url ID for click log: %v", err)
-		} else if dbShort != nil {
+		if err == nil && dbShort != nil {
 			click.ShortURLID = dbShort.ID
 		}
 	}
+
 	if click.ShortURLID != 0 {
 		if err := s.storage.SaveClick(ctx, click); err != nil {
-			log.Printf("[service] failed to log click for %s: %v", shortCode, err)
+			log.Printf("[service] failed to save click for %s: %v", shortCode, err)
 		}
 	} else {
-		log.Printf("[service] click not saved — no ShortURLID for %s", shortCode)
+		log.Printf("[service] no ShortURLID found for %s — click not saved", shortCode)
 	}
 
 	return longUrl, nil
-
 }
 
 // GetAnalytics возвращает статистику по кликам

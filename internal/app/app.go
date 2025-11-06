@@ -8,8 +8,9 @@ import (
 
 func Run() {
 	cfg := config.New()
-	err := cfg.Load("../config.yaml", "../.env", "")
+	err := cfg.LoadEnvFiles("../.env")
 	if err != nil {
-		log.Fatalf("[main]load cfg dissable %v", err)
+		log.Fatalf("[main] ошибка загрузки cfg %v", err)
 	}
+	cfg.EnableEnv("")
 }
