@@ -125,3 +125,12 @@ func (s *ServiceURL) ReturnOriginalURLByShort(ctx context.Context, shortCode, us
 	return longUrl, nil
 
 }
+
+// GetAnalytics возвращает статистику по кликам
+func (s *ServiceURL) GetAnalytics(ctx context.Context, shortURLID uint) (map[string]map[string]int, error) {
+	analytics, err := s.storage.GetClickAnalytics(ctx, shortURLID)
+	if err != nil {
+		return nil, fmt.Errorf("[service] failed to get analytics: %w", err)
+	}
+	return analytics, nil
+}
