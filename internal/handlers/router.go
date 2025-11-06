@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/Vladimirmoscow84/Shortener.git/internal/model"
@@ -20,8 +21,7 @@ type shortCodeFollower interface {
 }
 
 type analiticGetter interface {
-	GetAnalytics(ctx context.Context, shortURLID uint) (map[string]map[string]int, error)
-	GetShortURL(ctx context.Context, shortCode string) (*model.ShortURL, error)
+	GetAnalytics(ctx context.Context, shortURLID int) (map[string]map[string]int, error)
 }
 
 type Router struct {
@@ -43,7 +43,7 @@ func New(router *ginext.Engine, shortCodeCreator shortCodeCreator, shortCodeFoll
 func (r *Router) Routes() {
 	r.Router.POST("/horten", r.createShortURLHandler)
 	r.Router.GET("/s/:short_url", r.followShortURLHandler)
-	r.Router.GET("/analytics/short_url", r.getAnalyticsHandler)
+	r.Router.GET("/analytics/short_url_id", r.getAnalyticsHandler)
 	r.Router.GET("/", func(c *gin.Context) { c.File("./web/index.html") })
 	r.Router.Static("/static", "./web")
 }
@@ -77,12 +77,16 @@ func (r *Router) createShortURLHandler(c *gin.Context) {
 
 }
 
-// followShortURLHandler - хэндлер для перехода по короткой ссылке
+// followShortURLHandler - хэндлер для перехода по короткой ссылке и лог клика
 func (r *Router) followShortURLHandler(c *gin.Context) {
-	shortCode := c.Param("short_code")
+	shortCode := c.Param("short_url")
+	if shortCode == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "short code is required"})
+		return
+	}
 	userAgent := c.Request.UserAgent()
 
-	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 4*time.Second)
 	defer cancel()
 
 	originalURL, err := r.shortCodeFollower.ReturnOriginalURLByShort(ctx, shortCode, userAgent)
@@ -91,30 +95,26 @@ func (r *Router) followShortURLHandler(c *gin.Context) {
 		return
 	}
 
-	c.Redirect(http.StatusMovedPermanently, originalURL)
+	c.Redirect(http.StatusFound, originalURL)
 }
 
 // getAnalyticsHandler - хэндлер получения аналитики
 func (r *Router) getAnalyticsHandler(c *gin.Context) {
-	code := c.Param("short_code")
+	idStr := c.Param("short_url_id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid short_url_id"})
+		return
+	}
 
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
 	defer cancel()
 
-	short, err := r.analiticGetter.GetShortURL(ctx, code)
-	if err != nil || short == nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "short URL not found"})
-		return
-	}
-
-	data, err := r.analiticGetter.GetAnalytics(ctx, uint(short.ID))
+	stats, err := r.analiticGetter.GetAnalytics(ctx, id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get analytics: " + err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"short_code": short.ShortCode,
-		"analytics":  data,
-	})
+	c.JSON(http.StatusOK, stats)
 }
