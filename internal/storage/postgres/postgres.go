@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Vladimirmoscow84/Shortener.git/internal/model"
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -19,13 +20,11 @@ type Postgres struct {
 func New(databaseURI string) (*Postgres, error) {
 	db, err := sqlx.Connect("pgx", databaseURI)
 	if err != nil {
-		log.Fatalf("[postgres] failed connect to DB: %v", err)
-		return nil, fmt.Errorf("failed to connect to DB %w", err)
+		return nil, fmt.Errorf("[postgres]failed to connect to DB %w", err)
 	}
 	err = db.Ping()
 	if err != nil {
-		log.Fatalf("[postgres] ping failed: %v", err)
-		return nil, fmt.Errorf("ping failed: %w", err)
+		return nil, fmt.Errorf("[postgres]ping failed: %w", err)
 	}
 	log.Println("[postgres] connected successfully")
 	return &Postgres{
@@ -55,8 +54,8 @@ func (p *Postgres) SaveShortURL(ctx context.Context, short *model.ShortURL) (int
 	var id int
 	err := row.Scan(&id)
 	if err != nil {
-		log.Printf("[postgres] error adding shortURL to base: %v", err)
-		return 0, fmt.Errorf("error adding to base %w", err)
+
+		return 0, fmt.Errorf("[postgres]error adding to base %w", err)
 	}
 	short.ID = id
 	return id, nil
@@ -74,30 +73,18 @@ func (p *Postgres) GetShortURL(ctx context.Context, shortCode string) (*model.Sh
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
-		log.Printf("[postgres] failed to get short_url %s from DB: %v", shortCode, err)
-		return nil, fmt.Errorf("failed to get short_url %s from DB: %w", shortCode, err)
+		return nil, fmt.Errorf("[postgres]failed to get short_url %s from DB: %w", shortCode, err)
 	}
 	return &short, nil
 }
 
 // SaveClick сохраняет переход по короткой ссылке
 func (p *Postgres) SaveClick(ctx context.Context, click *model.Click) error {
-	row := p.DB.QueryRowContext(ctx, `
-		INSERT INTO clicks
-			(short_url_id, user_agent, timestamp)
-		VALUES
-			($1,$2,$3)
+	return p.DB.QueryRowContext(ctx, `
+		INSERT INTO clicks (short_url_id, user_agent, timestamp)
+		VALUES ($1,$2,$3)
 		RETURNING id;
-	`, click.ShortURLID, click.UserAgent, click.Timestamp)
-
-	var id int
-	err := row.Scan(&id)
-	if err != nil {
-		log.Printf("[postgres] failed to save click for short_url_id=%d: %v", click.ShortURLID, err)
-		return fmt.Errorf("failed to save click: %w", err)
-	}
-	click.ID = id
-	return nil
+	`, click.ShortURLID, click.UserAgent, click.Timestamp).Scan(&click.ID)
 }
 
 // GetClicksByShortURL возвращает все клики по короткой ссылке
@@ -110,14 +97,13 @@ func (p *Postgres) GetClicksByShortURL(ctx context.Context, shortURLID int) ([]m
 		ORDER BY timestamp DESC;
  `, shortURLID)
 	if err != nil {
-		log.Printf("[postgres] failed to get clicks for short_url_id=%d: %v", shortURLID, err)
-		return nil, fmt.Errorf("failed to get clicks: %w", err)
+		return nil, fmt.Errorf("[postgres]failed to get clicks: %w", err)
 	}
 	return clicks, nil
 }
 
 // GetClickAnalytics возвращает количество кликов по дням и User-Agent
-func (p *Postgres) GetClickAnalytics(ctx context.Context, shortURLID uint) (map[string]map[string]int, error) {
+func (p *Postgres) GetClickAnalytics(ctx context.Context, shortURLID int) (map[string]map[string]int, error) {
 	const query = `
 		SELECT DATE(timestamp) AS day, user_agent, COUNT(*) AS clicks
 		FROM clicks
@@ -128,8 +114,7 @@ func (p *Postgres) GetClickAnalytics(ctx context.Context, shortURLID uint) (map[
 
 	rows, err := p.DB.QueryxContext(ctx, query, shortURLID)
 	if err != nil {
-		log.Printf("[postgres] failed to get click analytics for short_url_id=%d: %v", shortURLID, err)
-		return nil, fmt.Errorf("failed to get analytics: %w", err)
+		return nil, fmt.Errorf("[postgres]failed to get analytics: %w", err)
 	}
 	defer rows.Close()
 
@@ -140,7 +125,7 @@ func (p *Postgres) GetClickAnalytics(ctx context.Context, shortURLID uint) (map[
 		var userAgent string
 		var count int
 		if err := rows.Scan(&day, &userAgent, &count); err != nil {
-			return nil, fmt.Errorf("failed to scan analytics row: %w", err)
+			return nil, fmt.Errorf("[postgres]failed to scan analytics row: %w", err)
 		}
 
 		dayStr := day.Format("2006-01-02")

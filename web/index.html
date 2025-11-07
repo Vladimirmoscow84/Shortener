@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>URL Shortener</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        input, button { padding: 8px; margin: 5px 0; width: 300px; }
+        table { border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ccc; padding: 8px; }
+        a { color: blue; text-decoration: underline; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>URL Shortener</h1>
+
+    <h2>Create Short URL</h2>
+    <input type="text" id="originalURL" placeholder="Enter original URL" />
+    <button onclick="createShortURL()">Create</button>
+
+    <h3>Short URL Result:</h3>
+    <div id="shortURLResult"></div>
+
+    <h2>Analytics</h2>
+    <input type="number" id="shortURLId" placeholder="Enter short URL ID" />
+    <button onclick="startAnalytics()">Start Analytics</button>
+
+    <div id="analyticsResult"></div>
+
+    <script>
+        const serverBase = ""; // пусто, если фронт и бэк на одном хосте и порту
+        let analyticsInterval;
+
+        async function createShortURL() {
+            const url = document.getElementById("originalURL").value;
+            if (!url) return alert("Enter URL");
+
+            const res = await fetch(`${serverBase}/shorten`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ original_code: url })
+            });
+
+            const data = await res.json();
+            const container = document.getElementById("shortURLResult");
+
+            if (res.ok) {
+                container.innerHTML =
+                    `Short URL: <a onclick="simulateClick('${data.short_code}')" target="_blank">${data.short_code}</a> (ID: ${data.id})`;
+            } else {
+                container.innerText = "Error: " + data.error;
+            }
+        }
+
+        async function simulateClick(shortCode) {
+            try {
+                // Создаём fetch с redirect: "follow" — браузер сам откроет оригинальную ссылку
+                const res = await fetch(`${serverBase}/s/${shortCode}`, {
+                    method: "GET",
+                    redirect: "follow"
+                });
+                // В браузере это просто откроет ссылку в новой вкладке
+                window.open(res.url, "_blank");
+            } catch (err) {
+                console.error("Click simulation failed:", err);
+            }
+        }
+
+        async function getAnalytics(id) {
+            if (!id) return;
+
+            const res = await fetch(`${serverBase}/analytics/${id}`);
+            const data = await res.json();
+
+            const container = document.getElementById("analyticsResult");
+            container.innerHTML = "";
+
+            if (Object.keys(data).length === 0) {
+                container.innerText = "No clicks yet";
+                return;
+            }
+
+            let html = "<table><tr><th>Date</th><th>User-Agent</th><th>Clicks</th></tr>";
+            for (const date in data) {
+                for (const ua in data[date]) {
+                    html += `<tr><td>${date}</td><td>${ua}</td><td>${data[date][ua]}</td></tr>`;
+                }
+            }
+            html += "</table>";
+            container.innerHTML = html;
+        }
+
+        function startAnalytics() {
+            const id = document.getElementById("shortURLId").value;
+            if (!id) return alert("Enter short URL ID");
+
+            if (analyticsInterval) clearInterval(analyticsInterval);
+
+            getAnalytics(id);
+            analyticsInterval = setInterval(() => getAnalytics(id), 5000);
+        }
+    </script>
+</body>
+</html>

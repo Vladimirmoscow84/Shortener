@@ -1,0 +1,13 @@
+__________________ЗАПУСК в ДОКЕРЕ___________
+docker run -d --name pg-shortener -p 5440:5432 -e POSTGRES_USER=vladimir -e POSTGRES_PASSWORD="password" -e POSTGRES_DB="shortener" postgres:latest
+
+docker run -d --name redis-go -p 6379:6379 redis
+
+
+миграции:
+Миграции на домашнем Маке:
+ *** c УЧЕТОМ ошибок переменной окружения  (PGLOCALEDIR=/Library/PostgreSQL/17/share/locale)***
+
+ env -u PGLOCALEDIR migrate -database "postgres://localhost:5440/shortener?sslmode=disable&user=vladimir&password=password" -path /Users/mac/Dev/WBTech/shortener/db/dumps up
+
+ env -u PGLOCALEDIR migrate -database "postgres://localhost:5440/shortener?sslmode=disable&user=vladimir&password=password" -path /Users/mac/Dev/WBTech/shortener/db/dumps down

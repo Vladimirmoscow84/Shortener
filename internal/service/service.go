@@ -11,7 +11,7 @@ type shortenerRepo interface {
 	GetShortURL(ctx context.Context, shortCode string) (*model.ShortURL, error)
 	SaveClick(ctx context.Context, click *model.Click) error
 	GetClicksByShortURL(ctx context.Context, shortURLID int) ([]model.Click, error)
-	GetClickAnalytics(ctx context.Context, shortURLID uint) (map[string]map[string]int, error)
+	GetClickAnalytics(ctx context.Context, shortURLID int) (map[string]map[string]int, error)
 }
 
 type cacheRepo interface {

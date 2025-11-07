@@ -41,9 +41,9 @@ func New(router *ginext.Engine, shortCodeCreator shortCodeCreator, shortCodeFoll
 }
 
 func (r *Router) Routes() {
-	r.Router.POST("/horten", r.createShortURLHandler)
+	r.Router.POST("/shorten", r.createShortURLHandler)
 	r.Router.GET("/s/:short_url", r.followShortURLHandler)
-	r.Router.GET("/analytics/short_url_id", r.getAnalyticsHandler)
+	r.Router.GET("/analytics/:short_url_id", r.getAnalyticsHandler)
 	r.Router.GET("/", func(c *gin.Context) { c.File("./web/index.html") })
 	r.Router.Static("/static", "./web")
 }
@@ -52,7 +52,7 @@ func (r *Router) Routes() {
 func (r *Router) createShortURLHandler(c *gin.Context) {
 
 	var request struct {
-		OriginalCode string `json:"original_code" binding:"requared,url"`
+		OriginalCode string `json:"original_code" binding:"required"`
 	}
 	err := c.ShouldBindJSON(&request)
 	if err != nil {

@@ -54,7 +54,7 @@ func (s *ServiceURL) CreateShortURL(ctx context.Context, longURL string) (*model
 	id, err := s.storage.SaveShortURL(ctx, short)
 	if err != nil {
 		log.Println("[srvice]failed to save short url in DB")
-		return nil, fmt.Errorf("[service]failed to save short url in DB: %w", &err)
+		return nil, fmt.Errorf("[service]failed to save short url in DB: %w", err)
 	}
 	short.ID = id
 
@@ -125,7 +125,7 @@ func (s *ServiceURL) ReturnOriginalURLByShort(ctx context.Context, shortCode, us
 }
 
 // GetAnalytics возвращает статистику по кликам
-func (s *ServiceURL) GetAnalytics(ctx context.Context, shortURLID uint) (map[string]map[string]int, error) {
+func (s *ServiceURL) GetAnalytics(ctx context.Context, shortURLID int) (map[string]map[string]int, error) {
 	analytics, err := s.storage.GetClickAnalytics(ctx, shortURLID)
 	if err != nil {
 		return nil, fmt.Errorf("[service] failed to get analytics: %w", err)
