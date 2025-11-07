@@ -86,18 +86,27 @@ cd Shortener
 Настроить .env файл
 
 Запустить Postgress и  Redis с нужными параметрами
+
+```
+
+
 docker run -d --name pg-shortener -p ________________
 docker run -d --name redis-go -p _______________
 
  Применить  SQL миграции из db/dumpы/:
  psql -h localhost -p 5440 -U ________ -d _________ -f db/dumps/init.sql
 
+
+```
  Запустить проект:
  go run cmd/main.go
 
 После запуска сервис будет доступен на http://localhost:7550
 
 ## API Endpoints
+```
+
+
 Создание короткой ссылки
 POST /shorten
 Content-Type: application/json
@@ -128,6 +137,8 @@ GET /analytics/:short_url_id
     "Chrome/120.0": 2
   }
 }
+
+```
 
 ## Frontend
 В директории temp/ есть простой HTML + JS интерфейс для:
