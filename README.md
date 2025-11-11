@@ -162,4 +162,4 @@ go test ./internal/storage/...
 
 
 Лицензия
- © 2025 — VladimirMoscow84
+ © 2025 — Vladimirmoscow84
