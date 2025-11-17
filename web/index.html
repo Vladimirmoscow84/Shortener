@@ -28,7 +28,7 @@
     <div id="analyticsResult"></div>
 
     <script>
-        const serverBase = ""; // пусто, если фронт и бэк на одном хосте и порту
+        const serverBase = ""; 
         let analyticsInterval;
 
         async function createShortURL() {
@@ -54,12 +54,10 @@
 
         async function simulateClick(shortCode) {
             try {
-                // Создаём fetch с redirect: "follow" — браузер сам откроет оригинальную ссылку
                 const res = await fetch(`${serverBase}/s/${shortCode}`, {
                     method: "GET",
                     redirect: "follow"
                 });
-                // В браузере это просто откроет ссылку в новой вкладке
                 window.open(res.url, "_blank");
             } catch (err) {
                 console.error("Click simulation failed:", err);
